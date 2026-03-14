@@ -1,0 +1,26 @@
+{
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "public": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/inc-beige-az0-draft.caffeine.xyz/index.html"
+    },
+    {
+      "source": "/:path((?!env\\.json|_DataURI|fonts\\..*|cdn\\..*|icp-api\\..*|assets).*)",
+      "destination": "/inc-beige-az0-draft.caffeine.xyz/$path"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/env.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
