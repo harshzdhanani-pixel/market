@@ -1,17 +1,7 @@
 {
   "buildCommand": "",
-  "outputDirectory": ".",
+  "outputDirectory": "inc-beige-az0-draft.caffeine.xyz",
   "public": true,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/inc-beige-az0-draft.caffeine.xyz/index.html"
-    },
-    {
-      "source": "/:path((?!env\\.json|_DataURI|fonts\\..*|cdn\\..*|icp-api\\..*|assets).*)",
-      "destination": "/inc-beige-az0-draft.caffeine.xyz/$path"
-    }
-  ],
   "headers": [
     {
       "source": "/env.json",
