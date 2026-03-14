@@ -2,12 +2,6 @@
   "buildCommand": "",
   "outputDirectory": ".",
   "public": true,
-  "rewrites": [
-    {
-      "source": "/((?!inc-beige-az0-draft\\.caffeine\\.xyz|env\\.json|_DataURI|fonts\\.|cdn\\.|icp-api\\.).*)",
-      "destination": "/inc-beige-az0-draft.caffeine.xyz/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/env.json",
