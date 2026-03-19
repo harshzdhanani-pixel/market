@@ -665,7 +665,7 @@ function defaultRetryDelay(failureCount) {
 }
 
 function canFetch(networkMode) {
-    return (networkMode ?? "online") === "online" ? onlineManager.isOnline() : true;
+    return (networkMode ? ? "online") === "online" ? onlineManager.isOnline() : true;
 }
 var CancelledError = class extends Error {
     constructor(options) {
@@ -733,7 +733,7 @@ function createRetryer(config) {
         let promiseOrValue;
         const initialPromise = failureCount === 0 ? config.initialPromise : void 0;
         try {
-            promiseOrValue = initialPromise ?? config.fn();
+            promiseOrValue = initialPromise ? ? config.fn();
         } catch (error) {
             promiseOrValue = Promise.reject(error);
         }
@@ -742,8 +742,8 @@ function createRetryer(config) {
             if (isResolved()) {
                 return;
             }
-            const retry = config.retry ?? (isServer ? 0 : 3);
-            const retryDelay = config.retryDelay ?? defaultRetryDelay;
+            const retry = config.retry ? ? (isServer ? 0 : 3);
+            const retryDelay = config.retryDelay ? ? defaultRetryDelay;
             const delay2 = typeof retryDelay === "function" ? retryDelay(failureCount, error) : retryDelay;
             const shouldRetry = retry === true || typeof retry === "number" && failureCount < retry || typeof retry === "function" && retry(failureCount, error);
             if (isRetryCancelled || !shouldRetry) {
@@ -802,7 +802,7 @@ var Removable = (_d = class {
     updateGcTime(newGcTime) {
         this.gcTime = Math.max(
             this.gcTime || 0,
-            newGcTime ?? (isServer ? Infinity : 5 * 60 * 1e3)
+            newGcTime ? ? (isServer ? Infinity : 5 * 60 * 1e3)
         );
     }
     clearGcTimeout() {
@@ -832,7 +832,7 @@ var Query = (_e = class extends Removable {
         this.queryKey = config.queryKey;
         this.queryHash = config.queryHash;
         __privateSet(this, _initialState, getDefaultState$1(this.options));
-        this.state = config.state ?? __privateGet(this, _initialState);
+        this.state = config.state ? ? __privateGet(this, _initialState);
         this.scheduleGc();
     }
     get meta() {
@@ -1174,14 +1174,14 @@ var Query = (_e = class extends Removable {
                 return {
                     ...state,
                     ...fetchState(state.data, this.options),
-                    fetchMeta: action.meta ?? null
+                    fetchMeta: action.meta ? ? null
                 };
             case "success":
                 const newState = {
                     ...state,
                     data: action.data,
                     dataUpdateCount: state.dataUpdateCount + 1,
-                    dataUpdatedAt: action.dataUpdatedAt ?? Date.now(),
+                    dataUpdatedAt: action.dataUpdatedAt ? ? Date.now(),
                     error: null,
                     isInvalidated: false,
                     status: "success",
@@ -1249,7 +1249,7 @@ function getDefaultState$1(options) {
     return {
         data,
         dataUpdateCount: 0,
-        dataUpdatedAt: hasData ? initialDataUpdatedAt ?? Date.now() : 0,
+        dataUpdatedAt: hasData ? initialDataUpdatedAt ? ? Date.now() : 0,
         error: null,
         errorUpdateCount: 0,
         errorUpdatedAt: 0,
@@ -1416,7 +1416,7 @@ var QueryObserver = (_f = class extends Subscribable {
     fetch(fetchOptions) {
         return __privateMethod(this, _QueryObserver_instances, executeFetch_fn).call(this, {
             ...fetchOptions,
-            cancelRefetch: fetchOptions.cancelRefetch ?? true
+            cancelRefetch: fetchOptions.cancelRefetch ? ? true
         }).then(() => {
             this.updateResult();
             return __privateGet(this, _currentResult);
@@ -1592,7 +1592,7 @@ var QueryObserver = (_f = class extends Subscribable {
                 return true;
             }
             const includedProps = new Set(
-                notifyOnChangePropsValue ?? __privateGet(this, _trackedProps)
+                notifyOnChangePropsValue ? ? __privateGet(this, _trackedProps)
             );
             if (this.options.throwOnError) {
                 includedProps.add("error");
@@ -1640,7 +1640,7 @@ var QueryObserver = (_f = class extends Subscribable {
         }
     }, timeout2));
 }, computeRefetchInterval_fn = function() {
-    return (typeof this.options.refetchInterval === "function" ? this.options.refetchInterval(__privateGet(this, _currentQuery)) : this.options.refetchInterval) ?? false;
+    return (typeof this.options.refetchInterval === "function" ? this.options.refetchInterval(__privateGet(this, _currentQuery)) : this.options.refetchInterval) ? ? false;
 }, updateRefetchInterval_fn = function(nextInterval) {
     __privateMethod(this, _QueryObserver_instances, clearRefetchInterval_fn).call(this);
     __privateSet(this, _currentRefetchInterval, nextInterval);
@@ -1792,9 +1792,9 @@ function infiniteQueryBehavior(pages) {
                     const param = pageParamFn(options, oldData);
                     result = await fetchPage(oldData, param, previous);
                 } else {
-                    const remainingPages = pages ?? oldPages.length;
+                    const remainingPages = pages ? ? oldPages.length;
                     do {
-                        const param = currentPage === 0 ? oldPageParams[0] ?? options.initialPageParam : getNextPageParam(options, result);
+                        const param = currentPage === 0 ? oldPageParams[0] ? ? options.initialPageParam : getNextPageParam(options, result);
                         if (currentPage > 0 && param == null) {
                             break;
                         }
@@ -1899,7 +1899,7 @@ var Mutation = (_g = class extends Removable {
     }
     continue () {
         var _a3;
-        return ((_a3 = __privateGet(this, _retryer2)) == null ? void 0 : _a3.continue()) ?? // continuing a mutation assumes that variables are set, mutation must have been dehydrated before
+        return ((_a3 = __privateGet(this, _retryer2)) == null ? void 0 : _a3.continue()) ? ? // continuing a mutation assumes that variables are set, mutation must have been dehydrated before
             this.execute(this.state.variables);
     }
     async execute(variables) {
@@ -1934,7 +1934,7 @@ var Mutation = (_g = class extends Removable {
                 });
             },
             onContinue,
-            retry: this.options.retry ?? 0,
+            retry: this.options.retry ? ? 0,
             retryDelay: this.options.retryDelay,
             networkMode: this.options.networkMode,
             canRun: () => __privateGet(this, _mutationCache).canRun(this)
@@ -2210,7 +2210,7 @@ var MutationCache = (_h = class extends Subscribable {
         const scope = scopeFor(mutation);
         if (typeof scope === "string") {
             const foundMutation = (_a3 = __privateGet(this, _scopes).get(scope)) == null ? void 0 : _a3.find((m2) => m2 !== mutation && m2.state.isPaused);
-            return (foundMutation == null ? void 0 : foundMutation.continue()) ?? Promise.resolve();
+            return (foundMutation == null ? void 0 : foundMutation.continue()) ? ? Promise.resolve();
         } else {
             return Promise.resolve();
         }
@@ -2327,7 +2327,7 @@ var MutationObserver$1 = (_i = class extends Subscribable {
     }
 }, _client4 = new WeakMap(), _currentResult2 = new WeakMap(), _currentMutation = new WeakMap(), _mutateOptions = new WeakMap(), _MutationObserver_instances = new WeakSet(), updateResult_fn = function() {
     var _a3;
-    const state = ((_a3 = __privateGet(this, _currentMutation)) == null ? void 0 : _a3.state) ?? getDefaultState();
+    const state = ((_a3 = __privateGet(this, _currentMutation)) == null ? void 0 : _a3.state) ? ? getDefaultState();
     __privateSet(this, _currentResult2, {
         ...state,
         isPending: state.status === "pending",
@@ -2396,7 +2396,7 @@ var QueryCache = (_j = class extends Subscribable {
     }
     build(client2, options, state) {
         const queryKey = options.queryKey;
-        const queryHash = options.queryHash ?? hashQueryKeyByOptions(queryKey, options);
+        const queryHash = options.queryHash ? ? hashQueryKeyByOptions(queryKey, options);
         let query = this.get(queryHash);
         if (!query) {
             query = new Query({
@@ -2645,7 +2645,7 @@ var QueryClient = (_k = class {
             }
             return this.refetchQueries({
                     ...filters,
-                    type: (filters == null ? void 0 : filters.refetchType) ?? (filters == null ? void 0 : filters.type) ?? "active"
+                    type: (filters == null ? void 0 : filters.refetchType) ? ? (filters == null ? void 0 : filters.type) ? ? "active"
                 },
                 options
             );
@@ -2654,7 +2654,7 @@ var QueryClient = (_k = class {
     refetchQueries(filters, options = {}) {
         const fetchOptions = {
             ...options,
-            cancelRefetch: options.cancelRefetch ?? true
+            cancelRefetch: options.cancelRefetch ? ? true
         };
         const promises = notifyManager.batch(
             () => __privateGet(this, _queryCache).findAll(filters).filter((query) => !query.isDisabled() && !query.isStatic()).map((query) => {
@@ -3347,7 +3347,7 @@ var getHasError = ({
 var ensureSuspenseTimers = (defaultedOptions) => {
     if (defaultedOptions.suspense) {
         const MIN_SUSPENSE_TIME_MS = 1e3;
-        const clamp2 = (value) => value === "static" ? value : Math.max(value ?? MIN_SUSPENSE_TIME_MS, MIN_SUSPENSE_TIME_MS);
+        const clamp2 = (value) => value === "static" ? value : Math.max(value ? ? MIN_SUSPENSE_TIME_MS, MIN_SUSPENSE_TIME_MS);
         const originalStaleTime = defaultedOptions.staleTime;
         defaultedOptions.staleTime = typeof originalStaleTime === "function" ? (...args) => clamp2(originalStaleTime(...args)) : clamp2(originalStaleTime);
         if (typeof defaultedOptions.gcTime === "number") {
@@ -18948,7 +18948,7 @@ var count$1 = 0;
 function useId(deterministicId) {
     const [id2, setId] = reactExports.useState(useReactId());
     useLayoutEffect2(() => {
-        setId((reactId) => reactId ?? String(count$1++));
+        setId((reactId) => reactId ? ? String(count$1++));
     }, [deterministicId]);
     return deterministicId || (id2 ? `radix-${id2}` : "");
 }
@@ -19112,7 +19112,7 @@ var DismissableLayer = reactExports.forwardRef(
         } = props;
         const context = reactExports.useContext(DismissableLayerContext);
         const [node, setNode] = reactExports.useState(null);
-        const ownerDocument = (node == null ? void 0 : node.ownerDocument) ?? (globalThis == null ? void 0 : globalThis.document);
+        const ownerDocument = (node == null ? void 0 : node.ownerDocument) ? ? (globalThis == null ? void 0 : globalThis.document);
         const [, force] = reactExports.useState({});
         const composedRefs = useComposedRefs$1(forwardedRef, (node2) => setNode(node2));
         const layers = Array.from(context.layers);
@@ -19407,7 +19407,7 @@ var FocusScope = reactExports.forwardRef((props, forwardedRef) => {
                     container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
                     container.dispatchEvent(unmountEvent);
                     if (!unmountEvent.defaultPrevented) {
-                        focus(previouslyFocusedElement ?? document.body, {
+                        focus(previouslyFocusedElement ? ? document.body, {
                             select: true
                         });
                     }
@@ -19574,7 +19574,7 @@ Portal$1.displayName = PORTAL_NAME$1;
 function useStateMachine(initialState, machine) {
     return reactExports.useReducer((state, event) => {
         const nextState = machine[state][event];
-        return nextState ?? state;
+        return nextState ? ? state;
     }, initialState);
 }
 var Presence = (props) => {
@@ -19642,7 +19642,7 @@ function usePresence$1(present) {
     useLayoutEffect2(() => {
         if (node) {
             let timeoutId;
-            const ownerWindow = node.ownerDocument.defaultView ?? window;
+            const ownerWindow = node.ownerDocument.defaultView ? ? window;
             const handleAnimationEnd = (event) => {
                 const currentAnimationName = getAnimationName(stylesRef.current);
                 const isCurrentAnimation = currentAnimationName.includes(CSS.escape(event.animationName));
@@ -19709,8 +19709,8 @@ var count = 0;
 function useFocusGuards() {
     reactExports.useEffect(() => {
         const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
-        document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
-        document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
+        document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ? ? createFocusGuard());
+        document.body.insertAdjacentElement("beforeend", edgeGuards[1] ? ? createFocusGuard());
         count++;
         return () => {
             if (count === 1) {
@@ -20608,7 +20608,7 @@ var Dialog$1 = (props) => {
     const contentRef = reactExports.useRef(null);
     const [open, setOpen] = useControllableState({
         prop: openProp,
-        defaultProp: defaultOpen ?? false,
+        defaultProp: defaultOpen ? ? false,
         onChange: onOpenChange,
         caller: DIALOG_NAME
     });
@@ -21465,19 +21465,6 @@ function Separator({
     );
 }
 
-function Skeleton({
-    className,
-    ...props
-}) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div", {
-            "data-slot": "skeleton",
-            className: cn("bg-accent animate-pulse rounded-md", className),
-            ...props
-        }
-    );
-}
-
 function Textarea({
     className,
     ...props
@@ -22213,7 +22200,7 @@ function matchOrder(origin, target) {
     for (let i = 0; i < target.values.length; i++) {
         const type = target.types[i];
         const originIndex = origin.indexes[type][pointers[type]];
-        const originValue = origin.values[originIndex] ?? 0;
+        const originValue = origin.values[originIndex] ? ? 0;
         orderedOrigin[i] = originValue;
         pointers[type]++;
     }
@@ -22973,7 +22960,7 @@ class JSAnimation extends WithPromise {
         } else if (this.holdTime !== null) {
             this.startTime = now2 - this.holdTime;
         } else if (!this.startTime) {
-            this.startTime = startTime ?? now2;
+            this.startTime = startTime ? ? now2;
         }
         if (this.state === "finished" && this.speed < 0) {
             this.startTime += this.calculatedDuration;
@@ -23038,7 +23025,7 @@ class JSAnimation extends WithPromise {
 
 function fillWildcards(keyframes2) {
     for (let i = 1; i < keyframes2.length; i++) {
-        keyframes2[i] ?? (keyframes2[i] = keyframes2[i - 1]);
+        keyframes2[i] ? ? (keyframes2[i] = keyframes2[i - 1]);
     }
 }
 const radToDeg = (rad) => rad * 180 / Math.PI;
@@ -23337,7 +23324,7 @@ const supportsFlags = {};
 
 function memoSupports(callback, supportsFlag) {
     const memoized2 = /* @__PURE__ */ memo(callback);
-    return () => supportsFlags[supportsFlag] ?? memoized2();
+    return () => supportsFlags[supportsFlag] ? ? memoized2();
 }
 const supportsScrollTimeline = /* @__PURE__ */ memoSupports(() => window.ScrollTimeline !== void 0, "scrollTimeline");
 const supportsLinearEasing = /* @__PURE__ */ memoSupports(() => {
@@ -23420,8 +23407,8 @@ function applyGeneratorOptions({
     if (isGenerator(type) && supportsLinearEasing()) {
         return type.applyToOptions(options);
     } else {
-        options.duration ?? (options.duration = 300);
-        options.ease ?? (options.ease = "easeOut");
+        options.duration ? ? (options.duration = 300);
+        options.ease ? ? (options.ease = "easeOut");
     }
     return options;
 }
@@ -23559,7 +23546,7 @@ class NativeAnimation extends WithPromise {
         return this.finishedTime !== null ? "finished" : this.animation.playState;
     }
     get startTime() {
-        return this.manualStartTime ?? Number(this.animation.startTime);
+        return this.manualStartTime ? ? Number(this.animation.startTime);
     }
     set startTime(newStartTime) {
         this.manualStartTime = this.animation.startTime = newStartTime;
@@ -23961,7 +23948,7 @@ function resolveTransition(transition, parentTransition) {
 }
 
 function getValueTransition(transition, key) {
-    const valueTransition = (transition == null ? void 0 : transition[key]) ?? (transition == null ? void 0 : transition["default"]) ?? transition;
+    const valueTransition = (transition == null ? void 0 : transition[key]) ? ? (transition == null ? void 0 : transition["default"]) ? ? transition;
     if (valueTransition !== transition) {
         return resolveTransition(valueTransition, transition);
     }
@@ -24440,7 +24427,7 @@ function animateTarget(visualElement, targetAndTransition, {
     const animations2 = [];
     const animationTypeState = type && visualElement.animationState && visualElement.animationState.getState()[type];
     for (const key in target) {
-        const value = visualElement.getValue(key, visualElement.latestValues[key] ?? null);
+        const value = visualElement.getValue(key, visualElement.latestValues[key] ? ? null);
         const valueTarget = target[key];
         if (valueTarget === void 0 || animationTypeState && shouldBlockAnimation(animationTypeState, key)) {
             continue;
@@ -24465,7 +24452,7 @@ function animateTarget(visualElement, targetAndTransition, {
             }
         }
         addValueToWillChange(visualElement, key);
-        const shouldReduceMotion = reduceMotion ?? visualElement.shouldReduceMotion;
+        const shouldReduceMotion = reduceMotion ? ? visualElement.shouldReduceMotion;
         value.start(animateMotionValue(key, value, valueTarget, shouldReduceMotion && positionalKeys.has(key) ? {
             type: false
         } : valueTransition, visualElement, isHandoff));
@@ -24861,7 +24848,7 @@ function resolveElements(elementOrSelector, scope, selectorCache) {
         return [elementOrSelector];
     } else if (typeof elementOrSelector === "string") {
         let root2 = document;
-        const elements = (selectorCache == null ? void 0 : selectorCache[elementOrSelector]) ?? root2.querySelectorAll(elementOrSelector);
+        const elements = (selectorCache == null ? void 0 : selectorCache[elementOrSelector]) ? ? root2.querySelectorAll(elementOrSelector);
         return elements ? Array.from(elements) : [];
     }
     return Array.from(elementOrSelector).filter((element) => element != null);
@@ -25434,7 +25421,7 @@ class VisualElement {
             }
             this.shouldReduceMotion = prefersReducedMotion.current;
         }
-        this.shouldSkipAnimations = this.skipAnimationsConfig ?? false;
+        this.shouldSkipAnimations = this.skipAnimationsConfig ? ? false;
         (_b3 = this.parent) == null ? void 0 : _b3.addChild(this);
         this.update(this.props, this.presenceContext);
         this.hasBeenMounted = true;
@@ -25462,7 +25449,7 @@ class VisualElement {
     }
     addChild(child) {
         this.children.add(child);
-        this.enteringChildren ?? (this.enteringChildren = /* @__PURE__ */ new Set());
+        this.enteringChildren ? ? (this.enteringChildren = /* @__PURE__ */ new Set());
         this.enteringChildren.add(child);
     }
     removeChild(child) {
@@ -25678,7 +25665,7 @@ class VisualElement {
      * directly from the instance (which might have performance implications).
      */
     readValue(key, target) {
-        let value = this.latestValues[key] !== void 0 || !this.current ? this.latestValues[key] : this.getBaseTargetFromProps(this.props, key) ?? this.readValueFromInstance(this.current, key, this.options);
+        let value = this.latestValues[key] !== void 0 || !this.current ? this.latestValues[key] : this.getBaseTargetFromProps(this.props, key) ? ? this.readValueFromInstance(this.current, key, this.options);
         if (value !== void 0 && value !== null) {
             if (typeof value === "string" && (isNumericalString(value) || isZeroValueString(value))) {
                 value = parseFloat(value);
@@ -26213,11 +26200,11 @@ function buildSVGAttrs(state, {
         delete attrs.transform;
     }
     if (style2.transform || attrs.transformOrigin) {
-        style2.transformOrigin = attrs.transformOrigin ?? "50% 50%";
+        style2.transformOrigin = attrs.transformOrigin ? ? "50% 50%";
         delete attrs.transformOrigin;
     }
     if (style2.transform) {
-        style2.transformBox = (styleProp == null ? void 0 : styleProp.transformBox) ?? "fill-box";
+        style2.transformBox = (styleProp == null ? void 0 : styleProp.transformBox) ? ? "fill-box";
         delete attrs.transformBox;
     }
     for (const key of cssMotionPathProperties) {
@@ -26523,7 +26510,7 @@ function createAnimationState(visualElement) {
                 const motionValue2 = visualElement.getValue(key);
                 if (motionValue2)
                     motionValue2.liveStyle = true;
-                fallbackAnimation[key] = fallbackTarget ?? null;
+                fallbackAnimation[key] = fallbackTarget ? ? null;
             });
             animations2.push({
                 animation: fallbackAnimation
@@ -26780,10 +26767,10 @@ const isPx = (value) => typeof value === "number" || px.test(value);
 
 function mixValues(target, follow, lead, progress2, shouldCrossfadeOpacity, isOnlyMember) {
     if (shouldCrossfadeOpacity) {
-        target.opacity = mixNumber$1(0, lead.opacity ?? 1, easeCrossfadeIn(progress2));
-        target.opacityExit = mixNumber$1(follow.opacity ?? 1, 0, easeCrossfadeOut(progress2));
+        target.opacity = mixNumber$1(0, lead.opacity ? ? 1, easeCrossfadeIn(progress2));
+        target.opacityExit = mixNumber$1(follow.opacity ? ? 1, 0, easeCrossfadeOut(progress2));
     } else if (isOnlyMember) {
-        target.opacity = mixNumber$1(follow.opacity ?? 1, lead.opacity ?? 1, progress2);
+        target.opacity = mixNumber$1(follow.opacity ? ? 1, lead.opacity ? ? 1, progress2);
     }
     for (let i = 0; i < numBorders; i++) {
         const borderLabel = `border${borders[i]}Radius`;
@@ -27945,7 +27932,7 @@ function createProjectionNode$1({
             } = this.projectionDelta;
             targetStyle.transformOrigin = `${x2.origin * 100}% ${y2.origin * 100}% 0`;
             if (lead.animationValues) {
-                targetStyle.opacity = lead === this ? valuesToRender.opacity ?? this.latestValues.opacity ?? 1 : this.preserveOpacity ? this.latestValues.opacity : valuesToRender.opacityExit;
+                targetStyle.opacity = lead === this ? valuesToRender.opacity ? ? this.latestValues.opacity ? ? 1 : this.preserveOpacity ? this.latestValues.opacity : valuesToRender.opacityExit;
             } else {
                 targetStyle.opacity = lead === this ? valuesToRender.opacity !== void 0 ? valuesToRender.opacity : "" : valuesToRender.opacityExit !== void 0 ? valuesToRender.opacityExit : 0;
             }
@@ -28302,7 +28289,7 @@ function PopChild({
     const {
         nonce
     } = reactExports.useContext(MotionConfigContext);
-    const childRef = ((_a3 = children.props) == null ? void 0 : _a3.ref) ?? (children == null ? void 0 : children.ref);
+    const childRef = ((_a3 = children.props) == null ? void 0 : _a3.ref) ? ? (children == null ? void 0 : children.ref);
     const composedRef = useComposedRefs(ref, childRef);
     reactExports.useInsertionEffect(() => {
         const {
@@ -28321,7 +28308,7 @@ function PopChild({
         const style2 = document.createElement("style");
         if (nonce)
             style2.nonce = nonce;
-        const parent = root2 ?? document.head;
+        const parent = root2 ? ? document.head;
         parent.appendChild(style2);
         if (style2.sheet) {
             style2.sheet.insertRule(`
@@ -28813,7 +28800,7 @@ function isSVGComponent(Component2) {
 function useRender(Component2, props, ref, {
     latestValues
 }, isStatic, forwardMotionProps = false, isSVG) {
-    const useVisualProps = isSVG ?? isSVGComponent(Component2) ? useSVGProps : useHTMLProps;
+    const useVisualProps = isSVG ? ? isSVGComponent(Component2) ? useSVGProps : useHTMLProps;
     const visualProps = useVisualProps(props, latestValues, isStatic, Component2);
     const filteredProps = filterProps(props, typeof Component2 === "string", forwardMotionProps);
     const elementProps = Component2 !== reactExports.Fragment ? { ...filteredProps,
@@ -29148,7 +29135,7 @@ function createMotionProxy(preloadedFeatures, createVisualElement) {
     });
 }
 const createDomVisualElement = (Component2, options) => {
-    const isSVG = options.isSVG ?? isSVGComponent(Component2);
+    const isSVG = options.isSVG ? ? isSVGComponent(Component2);
     return isSVG ? new SVGVisualElement(options) : new HTMLVisualElement(options, {
         allowProjection: Component2 !== reactExports.Fragment
     });
@@ -32490,7 +32477,7 @@ class ExpiryJsonDeserializeErrorCode extends ErrorCode {
 
 function formatUnknownError(error) {
     if (error instanceof Error) {
-        return error.stack ?? error.message;
+        return error.stack ? ? error.message;
     }
     try {
         return JSON.stringify(error);
@@ -34189,7 +34176,7 @@ class FuncClass extends ConstructType {
         T2.add(this, concat(opCode, argLen, args, retLen, rets, annLen, anns));
     }
     decodeValue(b2, t) {
-        const tt2 = t instanceof RecClass ? t.getType() ?? t : t;
+        const tt2 = t instanceof RecClass ? t.getType() ? ? t : t;
         if (!subtype(tt2, this)) {
             throw new Error(`Cannot decode function reference at type ${this.display()} from wire type ${tt2.display()}`);
         }
@@ -34277,7 +34264,7 @@ class ServiceClass extends ConstructType {
         T2.add(this, concat(opCode, len, ...meths));
     }
     decodeValue(b2, t) {
-        const tt2 = t instanceof RecClass ? t.getType() ?? t : t;
+        const tt2 = t instanceof RecClass ? t.getType() ? ? t : t;
         if (!subtype(tt2, this)) {
             throw new Error(`Cannot decode service reference at type ${this.display()} from wire type ${tt2.display()}`);
         }
@@ -35022,7 +35009,7 @@ let A = new Uint8Array(),
 function ut(t, n) {
     A = t, a = 0;
     const e = B();
-    return (n == null ? void 0 : n(e)) ?? e;
+    return (n == null ? void 0 : n(e)) ? ? e;
 }
 
 function B(t) {
@@ -35134,7 +35121,7 @@ function E(t) {
 
 function j(t) {
     const n = E(t);
-    return typeof n == "number" ? -1 - n : -1n - n;
+    return typeof n == "number" ? -1 - n : -1 n - n;
 }
 
 function $(t) {
@@ -35175,7 +35162,7 @@ let o = new Uint8Array(p),
 
 function dt(t, n) {
     s = 0;
-    const e = (n == null ? void 0 : n(t)) ?? t;
+    const e = (n == null ? void 0 : n(t)) ? ? t;
     return it(m, e, n), o.slice(0, s);
 }
 
@@ -35213,13 +35200,13 @@ function _(t, n) {
 
 function tt(t, n) {
     I(c.Array, t.length), t.forEach((e, i) => {
-        _((n == null ? void 0 : n(e, i.toString())) ?? e, n);
+        _((n == null ? void 0 : n(e, i.toString())) ? ? e, n);
     });
 }
 
 function nt(t, n) {
     O = Object.entries(t), I(c.Map, O.length), O.forEach(([e, i]) => {
-        X(e), _((n == null ? void 0 : n(i, e)) ?? i, n);
+        X(e), _((n == null ? void 0 : n(i, e)) ? ? i, n);
     });
 }
 
@@ -35293,7 +35280,7 @@ function ct(t) {
 function ot(t) {
     T(
         c.NegativeInteger,
-        typeof t == "bigint" ? -1n - t : -1 - t
+        typeof t == "bigint" ? -1 n - t : -1 - t
     );
 }
 
@@ -39670,7 +39657,7 @@ const _Certificate = class _Certificate {
         return cert;
     }
     static createUnverified(options) {
-        return new _Certificate(options.certificate, options.rootKey, options.canisterId, options.blsVerify ?? blsVerify, options.maxAgeInMinutes, options.disableTimeVerification, options.agent);
+        return new _Certificate(options.certificate, options.rootKey, options.canisterId, options.blsVerify ? ? blsVerify, options.maxAgeInMinutes, options.disableTimeVerification, options.agent);
     }
     /**
      * Lookup a path in the certificate tree, using {@link lookup_path}.
@@ -39700,7 +39687,7 @@ const _Certificate = class _Certificate {
             throw ProtocolError.fromCode(new CertificateVerificationErrorCode("Certificate does not contain a time"));
         }
         if (!__privateGet(this, _disableTimeVerification)) {
-            const timeDiffMsecs = ((_a3 = __privateGet(this, _agent)) == null ? void 0 : _a3.getTimeDiffMsecs()) ?? 0;
+            const timeDiffMsecs = ((_a3 = __privateGet(this, _agent)) == null ? void 0 : _a3.getTimeDiffMsecs()) ? ? 0;
             const maxAgeInMsec = this._maxAgeInMinutes * MINUTES_TO_MSEC;
             const now2 = /* @__PURE__ */ new Date();
             const adjustedNow = now2.getTime() + timeDiffMsecs;
@@ -41601,8 +41588,8 @@ const _HttpAgent = class _HttpAgent {
         __privateSet(this, _fetch, options.fetch || getDefaultFetch() || fetch.bind(global));
         __privateSet(this, _fetchOptions, options.fetchOptions);
         __privateSet(this, _callOptions, options.callOptions);
-        __privateSet(this, _shouldFetchRootKey, options.shouldFetchRootKey ?? false);
-        __privateSet(this, _shouldSyncTime, options.shouldSyncTime ?? false);
+        __privateSet(this, _shouldFetchRootKey, options.shouldFetchRootKey ? ? false);
+        __privateSet(this, _shouldSyncTime, options.shouldSyncTime ? ? false);
         if (options.rootKey) {
             this.rootKey = options.rootKey;
         } else if (__privateGet(this, _shouldFetchRootKey)) {
@@ -41615,7 +41602,7 @@ const _HttpAgent = class _HttpAgent {
         if (options.verifyQuerySignatures !== void 0) {
             __privateSet(this, _verifyQuerySignatures, options.verifyQuerySignatures);
         }
-        __privateSet(this, _retryTimes, options.retryTimes ?? 3);
+        __privateSet(this, _retryTimes, options.retryTimes ? ? 3);
         const defaultBackoffFactory = () => new ExponentialBackoff({
             maxIterations: __privateGet(this, _retryTimes)
         });
@@ -41678,7 +41665,7 @@ const _HttpAgent = class _HttpAgent {
                 fetchOptions: agent._fetchOptions,
                 callOptions: agent._callOptions,
                 host: agent._host.toString(),
-                identity: agent._identity ?? void 0
+                identity: agent._identity ? ? void 0
             });
         } catch {
             throw InputError.fromCode(new CreateHttpAgentErrorCode());
@@ -41720,8 +41707,8 @@ const _HttpAgent = class _HttpAgent {
      * @returns A promise that resolves to the response of the call, including the request ID and response details.
      */
     async call(canisterId, options, identity) {
-        const callSync = options.callSync ?? true;
-        const id2 = await (identity ?? __privateGet(this, _identity));
+        const callSync = options.callSync ? ? true;
+        const id2 = await (identity ? ? __privateGet(this, _identity));
         if (!id2) {
             throw ExternalError.fromCode(new IdentityInvalidErrorCode());
         }
@@ -41842,7 +41829,7 @@ const _HttpAgent = class _HttpAgent {
         this.log.print(`ecid ${ecid.toString()}`);
         this.log.print(`canisterId ${canisterId.toString()}`);
         let transformedRequest;
-        const id2 = await (identity ?? __privateGet(this, _identity));
+        const id2 = await (identity ? ? __privateGet(this, _identity));
         if (!id2) {
             throw ExternalError.fromCode(new IdentityInvalidErrorCode());
         }
@@ -41933,7 +41920,7 @@ const _HttpAgent = class _HttpAgent {
     }
     async createReadStateRequest(fields, identity) {
         await __privateMethod(this, _HttpAgent_instances, asyncGuard_fn).call(this);
-        const id2 = await (identity ?? __privateGet(this, _identity));
+        const id2 = await (identity ? ? __privateGet(this, _identity));
         if (!id2) {
             throw ExternalError.fromCode(new IdentityInvalidErrorCode());
         }
@@ -42048,20 +42035,20 @@ const _HttpAgent = class _HttpAgent {
      * @param {Principal} canisterIdOverride - Pass a canister ID if you need to sync the time with a particular subnet. Uses the ICP ledger canister by default.
      */
     async syncTime(canisterIdOverride) {
-        __privateSet(this, _syncTimePromise, __privateGet(this, _syncTimePromise) ?? (async () => {
+        __privateSet(this, _syncTimePromise, __privateGet(this, _syncTimePromise) ? ? (async () => {
             await __privateMethod(this, _HttpAgent_instances, rootKeyGuard_fn).call(this);
             const callTime = Date.now();
             try {
                 if (!canisterIdOverride) {
                     this.log.print("Syncing time with the IC. No canisterId provided, so falling back to ryjl3-tyaaa-aaaaa-aaaba-cai");
                 }
-                const canisterId = canisterIdOverride ?? Principal$1.from("ryjl3-tyaaa-aaaaa-aaaba-cai");
+                const canisterId = canisterIdOverride ? ? Principal$1.from("ryjl3-tyaaa-aaaaa-aaaba-cai");
                 const anonymousAgent = _HttpAgent.createSync({
                     identity: new AnonymousIdentity(),
                     host: this.host.toString(),
                     fetch: __privateGet(this, _fetch),
                     retryTimes: 0,
-                    rootKey: this.rootKey ?? void 0,
+                    rootKey: this.rootKey ? ? void 0,
                     shouldSyncTime: false
                 });
                 const replicaTimes = await Promise.all(Array(3).fill(null).map(async () => {
@@ -42117,7 +42104,7 @@ const _HttpAgent = class _HttpAgent {
         return decode(responseBodyBytes);
     }
     async fetchRootKey() {
-        __privateSet(this, _rootKeyPromise, __privateGet(this, _rootKeyPromise) ?? (async () => {
+        __privateSet(this, _rootKeyPromise, __privateGet(this, _rootKeyPromise) ? ? (async () => {
             const value = await this.status();
             this.rootKey = value.root_key;
             return this.rootKey;
@@ -42436,7 +42423,7 @@ async function pollForResponse(agent, canisterId, requestId, options = {}) {
     const path = [utf8ToBytes("request_status"), requestId];
     let state;
     let currentRequest;
-    const preSignReadStateRequest = options.preSignReadStateRequest ?? false;
+    const preSignReadStateRequest = options.preSignReadStateRequest ? ? false;
     if (preSignReadStateRequest) {
         currentRequest = await constructRequest({
             paths: [path],
@@ -42480,7 +42467,7 @@ async function pollForResponse(agent, canisterId, requestId, options = {}) {
         case RequestStatusResponseStatus.Unknown:
         case RequestStatusResponseStatus.Processing:
             {
-                const strategy = options.strategy ?? defaultStrategy();
+                const strategy = options.strategy ? ? defaultStrategy();
                 await strategy(canisterId, requestId, status);
                 return pollForResponse(agent, canisterId, requestId, {
                     ...options,
@@ -43567,7 +43554,7 @@ async function createActorWithConfig(options) {
         return mock;
     }
     const config = await loadConfig();
-    const resolvedOptions = options ?? {};
+    const resolvedOptions = options ? ? {};
     const agent = new HttpAgent({
         ...resolvedOptions.agentOptions,
         host: config.backend_host
@@ -43830,7 +43817,7 @@ class ECDSAKeyIdentity extends SignIdentity {
     static async generate(options) {
         const {
             extractable = false, keyUsages = ["sign", "verify"], subtleCrypto
-        } = options ?? {};
+        } = options ? ? {};
         const effectiveCrypto = _getEffectiveCrypto(subtleCrypto);
         const keyPair = await effectiveCrypto.generateKey({
             name: "ECDSA",
@@ -44250,7 +44237,7 @@ class IdleManager {
             };
         };
         if (options == null ? void 0 : options.captureScroll) {
-            const scroll = debounce(_resetTimer, (options == null ? void 0 : options.scrollDebounce) ?? 100);
+            const scroll = debounce(_resetTimer, (options == null ? void 0 : options.scrollDebounce) ? ? 100);
             window.addEventListener("scroll", scroll, true);
         }
         _resetTimer();
@@ -44554,7 +44541,7 @@ class IdbKeyVal {
     static async create(options) {
         const {
             dbName = AUTH_DB_NAME, storeName = OBJECT_STORE_NAME, version = DB_VERSION
-        } = options ?? {};
+        } = options ? ? {};
         const db = await _openDbStore(dbName, storeName, version);
         return new IdbKeyVal(db, storeName);
     }
@@ -44576,7 +44563,7 @@ class IdbKeyVal {
      * await get<string>('exampleKey') -> 'exampleValue'
      */
     async get(key) {
-        return await _getValue(this._db, this._storeName, key) ?? null;
+        return await _getValue(this._db, this._storeName, key) ? ? null;
     }
     /**
      * Remove a key
@@ -44636,7 +44623,7 @@ class IdbStorage {
         __privateAdd(this, _options);
         // Initializes a KeyVal on first request
         __publicField(this, "initializedDb");
-        __privateSet(this, _options, options ?? {});
+        __privateSet(this, _options, options ? ? {});
     }
     get _db() {
         return new Promise((resolve, reject) => {
@@ -44715,8 +44702,8 @@ class AuthClient {
      */
     static async create(options = {}) {
         var _a3;
-        const storage = options.storage ?? new IdbStorage();
-        const keyType = options.keyType ?? ECDSA_KEY_LABEL;
+        const storage = options.storage ? ? new IdbStorage();
+        const keyType = options.keyType ? ? ECDSA_KEY_LABEL;
         let key = null;
         if (options.identity) {
             key = options.identity;
@@ -44878,7 +44865,7 @@ class AuthClient {
     async login(options) {
         var _a3, _b3, _c2;
         const loginOptions = mergeLoginOptions((_a3 = this._createOptions) == null ? void 0 : _a3.loginOptions, options);
-        const maxTimeToLive = (loginOptions == null ? void 0 : loginOptions.maxTimeToLive) ?? DEFAULT_MAX_TIME_TO_LIVE;
+        const maxTimeToLive = (loginOptions == null ? void 0 : loginOptions.maxTimeToLive) ? ? DEFAULT_MAX_TIME_TO_LIVE;
         const identityProviderUrl = new URL(((_b3 = loginOptions == null ? void 0 : loginOptions.identityProvider) == null ? void 0 : _b3.toString()) || IDENTITY_PROVIDER_DEFAULT);
         identityProviderUrl.hash = IDENTITY_PROVIDER_ENDPOINT;
         (_c2 = this._idpWindow) == null ? void 0 : _c2.close();
@@ -44888,7 +44875,7 @@ class AuthClient {
             ...loginOptions
         });
         window.addEventListener("message", this._eventHandler);
-        this._idpWindow = window.open(identityProviderUrl.toString(), "idpWindow", loginOptions == null ? void 0 : loginOptions.windowOpenerFeatures) ?? void 0;
+        this._idpWindow = window.open(identityProviderUrl.toString(), "idpWindow", loginOptions == null ? void 0 : loginOptions.windowOpenerFeatures) ? ? void 0;
         const checkInterruption = () => {
             if (this._idpWindow) {
                 if (this._idpWindow.closed) {
@@ -45042,7 +45029,7 @@ function InternetIdentityProvider({
     }, [authClient, setErrorMessage]);
     const handleLoginError = reactExports.useCallback(
         (maybeError) => {
-            setErrorMessage(maybeError ?? "Login failed");
+            setErrorMessage(maybeError ? ? "Login failed");
         }, [setErrorMessage]
     );
     const login = reactExports.useCallback(() => {
@@ -45180,36 +45167,6 @@ function useActor() {
     };
 }
 
-function useAllDiamonds() {
-    const {
-        actor,
-        isFetching
-    } = useActor();
-    return useQuery({
-        queryKey: ["diamonds", "all"],
-        queryFn: async () => {
-            if (!actor) return [];
-            return actor.getAllDiamonds();
-        },
-        enabled: !!actor && !isFetching
-    });
-}
-
-function useFeaturedDiamonds() {
-    const {
-        actor,
-        isFetching
-    } = useActor();
-    return useQuery({
-        queryKey: ["diamonds", "featured"],
-        queryFn: async () => {
-            if (!actor) return [];
-            return actor.getFeaturedDiamonds();
-        },
-        enabled: !!actor && !isFetching
-    });
-}
-
 function useSubmitInquiry() {
     const {
         actor
@@ -45268,8 +45225,8 @@ function DiamondShape({
                 jsxRuntimeExports.jsx(
                     "polygon", {
                         points: "24,4 44,18 24,44 4,18",
-                        fill: "url(#diamondGradBW)",
-                        stroke: "oklch(0.60 0 0)",
+                        fill: "url(#diamondGradMaroon)",
+                        stroke: "oklch(0.50 0.12 25)",
                         strokeWidth: "1"
                     }
                 ),
@@ -45277,7 +45234,7 @@ function DiamondShape({
                 jsxRuntimeExports.jsx(
                     "polygon", {
                         points: "24,4 44,18 24,20 4,18",
-                        fill: "url(#diamondTopGradBW)",
+                        fill: "url(#diamondTopGradMaroon)",
                         opacity: "0.85"
                     }
                 ),
@@ -45286,7 +45243,7 @@ function DiamondShape({
                     children: [
                         /* @__PURE__ */
                         jsxRuntimeExports.jsxs("linearGradient", {
-                            id: "diamondGradBW",
+                            id: "diamondGradMaroon",
                             x1: "0",
                             y1: "0",
                             x2: "1",
@@ -45295,23 +45252,23 @@ function DiamondShape({
                                 /* @__PURE__ */
                                 jsxRuntimeExports.jsx("stop", {
                                     offset: "0%",
-                                    stopColor: "oklch(0.98 0 0)"
+                                    stopColor: "oklch(0.90 0.04 25)"
                                 }),
                                 /* @__PURE__ */
                                 jsxRuntimeExports.jsx("stop", {
                                     offset: "40%",
-                                    stopColor: "oklch(0.80 0 0)"
+                                    stopColor: "oklch(0.70 0.08 25)"
                                 }),
                                 /* @__PURE__ */
                                 jsxRuntimeExports.jsx("stop", {
                                     offset: "100%",
-                                    stopColor: "oklch(0.55 0 0)"
+                                    stopColor: "oklch(0.45 0.14 25)"
                                 })
                             ]
                         }),
                         /* @__PURE__ */
                         jsxRuntimeExports.jsxs("linearGradient", {
-                            id: "diamondTopGradBW",
+                            id: "diamondTopGradMaroon",
                             x1: "0",
                             y1: "0",
                             x2: "0",
@@ -45321,13 +45278,13 @@ function DiamondShape({
                                 jsxRuntimeExports.jsx("stop", {
                                     offset: "0%",
                                     stopColor: "white",
-                                    stopOpacity: "0.95"
+                                    stopOpacity: "0.90"
                                 }),
                                 /* @__PURE__ */
                                 jsxRuntimeExports.jsx("stop", {
                                     offset: "100%",
                                     stopColor: "white",
-                                    stopOpacity: "0.15"
+                                    stopOpacity: "0.10"
                                 })
                             ]
                         })
@@ -45336,6 +45293,345 @@ function DiamondShape({
             ]
         }
     );
+}
+
+function DiamondArrangement() {
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+        className: "relative w-full aspect-square max-w-md mx-auto flex items-center justify-center",
+        children: [
+            /* @__PURE__ */
+            jsxRuntimeExports.jsx(
+                "div", {
+                    className: "absolute -top-4 -left-4 w-16 h-16 border-t-2 border-l-2 border-primary opacity-50",
+                    "aria-hidden": true
+                }
+            ),
+            /* @__PURE__ */
+            jsxRuntimeExports.jsx(
+                "div", {
+                    className: "absolute -bottom-4 -right-4 w-16 h-16 border-b-2 border-r-2 border-primary opacity-50",
+                    "aria-hidden": true
+                }
+            ),
+            /* @__PURE__ */
+            jsxRuntimeExports.jsxs(
+                "svg", {
+                    viewBox: "0 0 400 400",
+                    fill: "none",
+                    xmlns: "http://www.w3.org/2000/svg",
+                    className: "w-full h-full",
+                    "aria-label": "Diamond arrangement",
+                    role: "img",
+                    children: [
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx("circle", {
+                            cx: "200",
+                            cy: "200",
+                            r: "180",
+                            fill: "oklch(0.93 0.02 25)"
+                        }),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "circle", {
+                                cx: "200",
+                                cy: "200",
+                                r: "155",
+                                fill: "none",
+                                stroke: "oklch(0.84 0.03 25)",
+                                strokeWidth: "1",
+                                strokeDasharray: "4 6"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "200,60 300,160 200,300 100,160",
+                                fill: "url(#centerDiamond)",
+                                stroke: "oklch(0.50 0.12 25)",
+                                strokeWidth: "1.5"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "200,60 300,160 200,170 100,160",
+                                fill: "url(#centerTop)",
+                                opacity: "0.7"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "300,80 335,110 300,148 265,110",
+                                fill: "url(#smallDiamond1)",
+                                stroke: "oklch(0.55 0.10 25)",
+                                strokeWidth: "1"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "300,80 335,110 300,120 265,110",
+                                fill: "url(#smallTop1)",
+                                opacity: "0.6"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "100,252 135,282 100,320 65,282",
+                                fill: "url(#smallDiamond2)",
+                                stroke: "oklch(0.55 0.10 25)",
+                                strokeWidth: "1"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "100,252 135,282 100,292 65,282",
+                                fill: "url(#smallTop2)",
+                                opacity: "0.6"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "80,100 100,120 80,145 60,120",
+                                fill: "url(#tinyDiamond1)",
+                                stroke: "oklch(0.60 0.08 25)",
+                                strokeWidth: "0.8"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "polygon", {
+                                points: "320,270 340,290 320,315 300,290",
+                                fill: "url(#tinyDiamond2)",
+                                stroke: "oklch(0.60 0.08 25)",
+                                strokeWidth: "0.8"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "circle", {
+                                cx: "155",
+                                cy: "90",
+                                r: "3",
+                                fill: "oklch(0.37 0.16 25)",
+                                opacity: "0.6"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "circle", {
+                                cx: "340",
+                                cy: "200",
+                                r: "4",
+                                fill: "oklch(0.37 0.16 25)",
+                                opacity: "0.5"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "circle", {
+                                cx: "60",
+                                cy: "220",
+                                r: "2.5",
+                                fill: "oklch(0.37 0.16 25)",
+                                opacity: "0.5"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsx(
+                            "circle", {
+                                cx: "245",
+                                cy: "340",
+                                r: "3",
+                                fill: "oklch(0.37 0.16 25)",
+                                opacity: "0.6"
+                            }
+                        ),
+                        /* @__PURE__ */
+                        jsxRuntimeExports.jsxs("defs", {
+                            children: [
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "centerDiamond",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "1",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "oklch(0.88 0.05 25)"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "40%",
+                                            stopColor: "oklch(0.65 0.11 25)"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "oklch(0.35 0.16 25)"
+                                        })
+                                    ]
+                                }),
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "centerTop",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "0",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "white",
+                                            stopOpacity: "0.85"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "white",
+                                            stopOpacity: "0.05"
+                                        })
+                                    ]
+                                }),
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "smallDiamond1",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "1",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "oklch(0.85 0.06 25)"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "oklch(0.40 0.15 25)"
+                                        })
+                                    ]
+                                }),
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "smallTop1",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "0",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "white",
+                                            stopOpacity: "0.80"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "white",
+                                            stopOpacity: "0.05"
+                                        })
+                                    ]
+                                }),
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "smallDiamond2",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "1",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "oklch(0.85 0.06 25)"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "oklch(0.40 0.15 25)"
+                                        })
+                                    ]
+                                }),
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "smallTop2",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "0",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "white",
+                                            stopOpacity: "0.80"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "white",
+                                            stopOpacity: "0.05"
+                                        })
+                                    ]
+                                }),
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "tinyDiamond1",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "1",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "oklch(0.80 0.07 25)"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "oklch(0.45 0.14 25)"
+                                        })
+                                    ]
+                                }),
+                                /* @__PURE__ */
+                                jsxRuntimeExports.jsxs("linearGradient", {
+                                    id: "tinyDiamond2",
+                                    x1: "0",
+                                    y1: "0",
+                                    x2: "1",
+                                    y2: "1",
+                                    children: [
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "0%",
+                                            stopColor: "oklch(0.80 0.07 25)"
+                                        }),
+                                        /* @__PURE__ */
+                                        jsxRuntimeExports.jsx("stop", {
+                                            offset: "100%",
+                                            stopColor: "oklch(0.45 0.14 25)"
+                                        })
+                                    ]
+                                })
+                            ]
+                        })
+                    ]
+                }
+            )
+        ]
+    });
 }
 
 function InquiryForm({
@@ -45380,7 +45676,7 @@ function InquiryForm({
                     jsxRuntimeExports.jsx("div", {
                         className: "rounded-full p-4 bg-secondary",
                         children: /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, {
-                            className: "w-10 h-10 text-foreground"
+                            className: "w-10 h-10 text-primary"
                         })
                     }),
                     /* @__PURE__ */
@@ -45424,7 +45720,7 @@ function InquiryForm({
                                 name: e.target.value
                             })),
                             required: true,
-                            className: "border-border/70 focus-visible:ring-foreground/30"
+                            className: "border-border/70 focus-visible:ring-primary/30"
                         }
                     )
                 ]
@@ -45453,7 +45749,7 @@ function InquiryForm({
                                 email: e.target.value
                             })),
                             required: true,
-                            className: "border-border/70 focus-visible:ring-foreground/30"
+                            className: "border-border/70 focus-visible:ring-primary/30"
                         }
                     )
                 ]
@@ -45476,12 +45772,12 @@ function InquiryForm({
                             id: "inq-phone",
                             "data-ocid": "inquiry.phone.input",
                             type: "tel",
-                            placeholder: "+1 (555) 000-0000",
+                            placeholder: "+91 98242 08423",
                             value: form.phone,
                             onChange: (e) => setForm((p2) => ({ ...p2,
                                 phone: e.target.value
                             })),
-                            className: "border-border/70 focus-visible:ring-foreground/30"
+                            className: "border-border/70 focus-visible:ring-primary/30"
                         }
                     )
                 ]
@@ -45509,7 +45805,7 @@ function InquiryForm({
                                 message: e.target.value
                             })),
                             rows: 3,
-                            className: "border-border/70 focus-visible:ring-foreground/30 resize-none"
+                            className: "border-border/70 focus-visible:ring-primary/30 resize-none"
                         }
                     )
                 ]
@@ -45536,223 +45832,6 @@ function InquiryForm({
     });
 }
 
-function DiamondCard({
-    diamond,
-    index: index2,
-    onInquire
-}) {
-    const ocidIndex = index2 + 1;
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        motion.div, {
-            "data-ocid": `diamond.item.${ocidIndex}`,
-            initial: {
-                opacity: 0,
-                y: 30
-            },
-            whileInView: {
-                opacity: 1,
-                y: 0
-            },
-            viewport: {
-                once: true
-            },
-            transition: {
-                duration: 0.5,
-                delay: index2 % 3 * 0.1
-            },
-            className: "card-hover bg-card rounded-sm border border-border shadow-diamond group cursor-pointer",
-            onClick: () => onInquire(diamond),
-            children: [
-                /* @__PURE__ */
-                jsxRuntimeExports.jsxs("div", {
-                    className: "diamond-shimmer h-44 flex items-center justify-center relative overflow-hidden rounded-t-sm",
-                    children: [
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsx("div", {
-                            className: "diamond-icon-wrapper float-animate",
-                            children: /* @__PURE__ */ jsxRuntimeExports.jsx(DiamondShape, {
-                                size: 72
-                            })
-                        }),
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsx("div", {
-                            className: "absolute top-3 left-3",
-                            children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Badge, {
-                                className: "bg-black/80 text-white border-0 text-xs tracking-widest uppercase font-sans",
-                                children: [
-                                    diamond.carat,
-                                    "ct"
-                                ]
-                            })
-                        }),
-                        diamond.inStock ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-                            className: "absolute top-3 right-3 w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-200"
-                        }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-                            className: "absolute top-3 right-3",
-                            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                Badge, {
-                                    variant: "outline",
-                                    className: "text-xs border-border text-muted-foreground",
-                                    children: "Inquire"
-                                }
-                            )
-                        })
-                    ]
-                }),
-                /* @__PURE__ */
-                jsxRuntimeExports.jsxs("div", {
-                    className: "p-5",
-                    children: [
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsx("h3", {
-                            className: "font-display text-lg text-foreground leading-snug mb-1",
-                            children: diamond.name
-                        }),
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsx("p", {
-                            className: "text-sm text-muted-foreground line-clamp-2 mb-4",
-                            children: diamond.description
-                        }),
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsx("div", {
-                            className: "grid grid-cols-3 gap-2 mb-4",
-                            children: [{
-                                    label: "Cut",
-                                    value: diamond.cut
-                                },
-                                {
-                                    label: "Color",
-                                    value: diamond.color
-                                },
-                                {
-                                    label: "Clarity",
-                                    value: diamond.clarity
-                                }
-                            ].map((spec) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                                "div", {
-                                    className: "text-center bg-secondary/60 rounded-sm py-1.5 px-1",
-                                    children: [
-                                        /* @__PURE__ */
-                                        jsxRuntimeExports.jsx("p", {
-                                            className: "text-xs text-muted-foreground tracking-widest uppercase",
-                                            children: spec.label
-                                        }),
-                                        /* @__PURE__ */
-                                        jsxRuntimeExports.jsx("p", {
-                                            className: "text-sm font-medium text-foreground mt-0.5",
-                                            children: spec.value
-                                        })
-                                    ]
-                                },
-                                spec.label
-                            ))
-                        }),
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsxs("div", {
-                            className: "flex items-center justify-between",
-                            children: [
-                                /* @__PURE__ */
-                                jsxRuntimeExports.jsxs("div", {
-                                    children: [
-                                        /* @__PURE__ */
-                                        jsxRuntimeExports.jsx("p", {
-                                            className: "text-xs text-muted-foreground uppercase tracking-wider",
-                                            children: "Price"
-                                        }),
-                                        /* @__PURE__ */
-                                        jsxRuntimeExports.jsxs("p", {
-                                            className: "font-display text-xl text-foreground",
-                                            children: [
-                                                "$",
-                                                diamond.price.toLocaleString()
-                                            ]
-                                        })
-                                    ]
-                                }),
-                                /* @__PURE__ */
-                                jsxRuntimeExports.jsx(
-                                    Button, {
-                                        "data-ocid": "diamond.inquire.open_modal_button",
-                                        size: "sm",
-                                        className: "gold-gradient text-white hover:opacity-90 transition-opacity text-xs uppercase tracking-widest font-medium",
-                                        onClick: (e) => {
-                                            e.stopPropagation();
-                                            onInquire(diamond);
-                                        },
-                                        children: "Inquire"
-                                    }
-                                )
-                            ]
-                        })
-                    ]
-                })
-            ]
-        }
-    );
-}
-
-function DiamondCardSkeleton() {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-        className: "bg-card rounded-sm border border-border shadow-diamond",
-        children: [
-            /* @__PURE__ */
-            jsxRuntimeExports.jsx(Skeleton, {
-                className: "h-44 w-full rounded-t-sm rounded-b-none"
-            }),
-            /* @__PURE__ */
-            jsxRuntimeExports.jsxs("div", {
-                className: "p-5 space-y-3",
-                children: [
-                    /* @__PURE__ */
-                    jsxRuntimeExports.jsx(Skeleton, {
-                        className: "h-5 w-3/4"
-                    }),
-                    /* @__PURE__ */
-                    jsxRuntimeExports.jsx(Skeleton, {
-                        className: "h-4 w-full"
-                    }),
-                    /* @__PURE__ */
-                    jsxRuntimeExports.jsx(Skeleton, {
-                        className: "h-4 w-2/3"
-                    }),
-                    /* @__PURE__ */
-                    jsxRuntimeExports.jsxs("div", {
-                        className: "grid grid-cols-3 gap-2",
-                        children: [
-                            /* @__PURE__ */
-                            jsxRuntimeExports.jsx(Skeleton, {
-                                className: "h-12 rounded-sm"
-                            }),
-                            /* @__PURE__ */
-                            jsxRuntimeExports.jsx(Skeleton, {
-                                className: "h-12 rounded-sm"
-                            }),
-                            /* @__PURE__ */
-                            jsxRuntimeExports.jsx(Skeleton, {
-                                className: "h-12 rounded-sm"
-                            })
-                        ]
-                    }),
-                    /* @__PURE__ */
-                    jsxRuntimeExports.jsxs("div", {
-                        className: "flex items-center justify-between",
-                        children: [
-                            /* @__PURE__ */
-                            jsxRuntimeExports.jsx(Skeleton, {
-                                className: "h-7 w-20"
-                            }),
-                            /* @__PURE__ */
-                            jsxRuntimeExports.jsx(Skeleton, {
-                                className: "h-8 w-20 rounded-sm"
-                            })
-                        ]
-                    })
-                ]
-            })
-        ]
-    });
-}
-
 function App() {
     const [selectedDiamond, setSelectedDiamond] = reactExports.useState(
         null
@@ -45760,14 +45839,6 @@ function App() {
     const [dialogOpen, setDialogOpen] = reactExports.useState(false);
     const [navScrolled, setNavScrolled] = reactExports.useState(false);
     useInitialize();
-    const {
-        data: allDiamonds,
-        isLoading: loadingAll
-    } = useAllDiamonds();
-    const {
-        data: featuredDiamonds,
-        isLoading: loadingFeatured
-    } = useFeaturedDiamonds();
     reactExports.useEffect(() => {
         const handleScroll2 = () => setNavScrolled(window.scrollY > 60);
         window.addEventListener("scroll", handleScroll2, {
@@ -45778,6 +45849,17 @@ function App() {
     const openInquiry = (diamond) => {
         setSelectedDiamond(diamond);
         setDialogOpen(true);
+    };
+    const placeholderDiamond = {
+        id: BigInt(0),
+        name: "General Inquiry",
+        description: "I would like to learn more about your white diamond collection.",
+        carat: 1,
+        cut: "Excellent",
+        color: "D",
+        clarity: "VS1",
+        price: 0,
+        inStock: true
     };
     const scrollTo = (id2) => {
         var _a3;
@@ -45805,8 +45887,8 @@ function App() {
                                     "aria-label": "Home",
                                     "data-ocid": "nav.logo.button",
                                     children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
-                                        className: "font-orbitron text-white text-lg leading-none",
-                                        children: "મરકત"
+                                        className: "font-calligraphy text-white text-2xl leading-none",
+                                        children: "markat"
                                     })
                                 }
                             ),
@@ -45817,11 +45899,6 @@ function App() {
                                         label: "Home",
                                         id: "hero",
                                         ocid: "nav.home.link"
-                                    },
-                                    {
-                                        label: "Diamonds",
-                                        id: "catalog",
-                                        ocid: "nav.diamonds.link"
                                     },
                                     {
                                         label: "About",
@@ -45850,8 +45927,8 @@ function App() {
                                 Button, {
                                     size: "sm",
                                     className: "md:hidden gold-gradient text-white text-xs uppercase tracking-wider",
-                                    onClick: () => scrollTo("catalog"),
-                                    children: "View Diamonds"
+                                    onClick: () => scrollTo("contact"),
+                                    children: "Contact Us"
                                 }
                             )
                         ]
@@ -45865,21 +45942,17 @@ function App() {
                     className: "relative min-h-screen flex items-center justify-center overflow-hidden",
                     children: [
                         /* @__PURE__ */
-                        jsxRuntimeExports.jsx(
-                            "img", {
-                                src: "/assets/generated/diamond-hero.dim_1920x1080.jpg",
-                                alt: "",
-                                className: "absolute inset-0 w-full h-full object-cover",
-                                "aria-hidden": true
-                            }
-                        ),
+                        jsxRuntimeExports.jsx("div", {
+                            className: "hero-bg absolute inset-0",
+                            "aria-hidden": true
+                        }),
                         /* @__PURE__ */
                         jsxRuntimeExports.jsx("div", {
                             className: "hero-overlay absolute inset-0",
                             "aria-hidden": true
                         }), [0, 1, 2, 3, 4, 5].map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
                             "div", {
-                                className: "absolute opacity-30 float-animate",
+                                className: "absolute opacity-20 float-animate",
                                 style: {
                                     left: `${15 + i * 15}%`,
                                     top: `${20 + i % 3 * 20}%`,
@@ -45930,15 +46003,15 @@ function App() {
                                             duration: 0.8,
                                             delay: 0.15
                                         },
-                                        className: "font-display text-6xl md:text-8xl text-white leading-[1.0] tracking-tight mb-4",
+                                        className: "font-calligraphy text-6xl md:text-8xl text-white leading-[1.0] tracking-normal mb-4",
                                         children: [
-                                            "મરકત",
+                                            "markat",
                                             /* @__PURE__ */
                                             jsxRuntimeExports.jsx("br", {}),
                                             /* @__PURE__ */
                                             jsxRuntimeExports.jsx("span", {
-                                                className: "font-serif-italic text-5xl md:text-6xl text-white/80 font-normal",
-                                                children: "Diamonds"
+                                                className: "font-calligraphy text-5xl md:text-6xl text-white/80",
+                                                children: "diamond dreams"
                                             })
                                         ]
                                     }
@@ -45985,8 +46058,8 @@ function App() {
                                                     "data-ocid": "hero.primary_button",
                                                     size: "lg",
                                                     className: "gold-gradient text-white text-sm uppercase tracking-[0.2em] font-medium px-10 py-6 hover:opacity-90 transition-opacity",
-                                                    onClick: () => scrollTo("catalog"),
-                                                    children: "Explore Collection"
+                                                    onClick: () => openInquiry(placeholderDiamond),
+                                                    children: "Inquire Now"
                                                 }
                                             ),
                                             /* @__PURE__ */
@@ -46028,63 +46101,6 @@ function App() {
             ),
             /* @__PURE__ */
             jsxRuntimeExports.jsx("section", {
-                className: "py-24 bg-secondary/30",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-                    className: "container max-w-6xl mx-auto px-6",
-                    children: [
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsxs(
-                            motion.div, {
-                                initial: {
-                                    opacity: 0,
-                                    y: 20
-                                },
-                                whileInView: {
-                                    opacity: 1,
-                                    y: 0
-                                },
-                                viewport: {
-                                    once: true
-                                },
-                                transition: {
-                                    duration: 0.6
-                                },
-                                className: "text-center mb-14",
-                                children: [
-                                    /* @__PURE__ */
-                                    jsxRuntimeExports.jsx("p", {
-                                        className: "text-xs tracking-[0.4em] uppercase text-muted-foreground font-sans mb-3",
-                                        children: "Hand Selected"
-                                    }),
-                                    /* @__PURE__ */
-                                    jsxRuntimeExports.jsx("h2", {
-                                        className: "font-display text-4xl md:text-5xl text-foreground mb-4",
-                                        children: "Featured Stones"
-                                    }),
-                                    /* @__PURE__ */
-                                    jsxRuntimeExports.jsx("div", {
-                                        className: "section-divider"
-                                    })
-                                ]
-                            }
-                        ),
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsx("div", {
-                            className: "grid grid-cols-1 md:grid-cols-3 gap-6",
-                            children: loadingFeatured ? [1, 2, 3].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsx(DiamondCardSkeleton, {}, `featured-skeleton-${n}`)) : (featuredDiamonds ?? []).slice(0, 3).map((d2, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                DiamondCard, {
-                                    diamond: d2,
-                                    index: i,
-                                    onInquire: openInquiry
-                                },
-                                String(d2.id)
-                            ))
-                        })
-                    ]
-                })
-            }),
-            /* @__PURE__ */
-            jsxRuntimeExports.jsx("section", {
                 className: "py-12 border-y border-border bg-card",
                 children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
                     className: "container max-w-5xl mx-auto px-6",
@@ -46092,21 +46108,21 @@ function App() {
                         className: "grid grid-cols-1 md:grid-cols-3 gap-8 text-center",
                         children: [{
                                 icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Award, {
-                                    className: "w-7 h-7 text-foreground mx-auto mb-3"
+                                    className: "w-7 h-7 text-primary mx-auto mb-3"
                                 }),
                                 title: "GIA Certified",
                                 desc: "Every diamond verified by world-leading gemological authority"
                             },
                             {
                                 icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, {
-                                    className: "w-7 h-7 text-foreground mx-auto mb-3"
+                                    className: "w-7 h-7 text-primary mx-auto mb-3"
                                 }),
                                 title: "Ethically Sourced",
                                 desc: "Conflict-free diamonds with full provenance documentation"
                             },
                             {
                                 icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Star, {
-                                    className: "w-7 h-7 text-foreground mx-auto mb-3"
+                                    className: "w-7 h-7 text-primary mx-auto mb-3"
                                 }),
                                 title: "Expert Curation",
                                 desc: "Only top 1% of diamonds pass our strict quality selection"
@@ -46148,72 +46164,6 @@ function App() {
             }),
             /* @__PURE__ */
             jsxRuntimeExports.jsx("section", {
-                id: "catalog",
-                className: "py-24 bg-background",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-                    className: "container max-w-6xl mx-auto px-6",
-                    children: [
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsxs(
-                            motion.div, {
-                                initial: {
-                                    opacity: 0,
-                                    y: 20
-                                },
-                                whileInView: {
-                                    opacity: 1,
-                                    y: 0
-                                },
-                                viewport: {
-                                    once: true
-                                },
-                                transition: {
-                                    duration: 0.6
-                                },
-                                className: "text-center mb-14",
-                                children: [
-                                    /* @__PURE__ */
-                                    jsxRuntimeExports.jsx("p", {
-                                        className: "text-xs tracking-[0.4em] uppercase text-muted-foreground font-sans mb-3",
-                                        children: "Full Collection"
-                                    }),
-                                    /* @__PURE__ */
-                                    jsxRuntimeExports.jsx("h2", {
-                                        className: "font-display text-4xl md:text-5xl text-foreground mb-4",
-                                        children: "Diamond Catalog"
-                                    }),
-                                    /* @__PURE__ */
-                                    jsxRuntimeExports.jsx("div", {
-                                        className: "section-divider"
-                                    }),
-                                    /* @__PURE__ */
-                                    jsxRuntimeExports.jsx("p", {
-                                        className: "text-muted-foreground mt-6 max-w-xl mx-auto text-sm leading-relaxed",
-                                        children: "Discover our exclusive collection of white diamonds — each one exceptional in brilliance, clarity, and character."
-                                    })
-                                ]
-                            }
-                        ),
-                        /* @__PURE__ */
-                        jsxRuntimeExports.jsx(
-                            "div", {
-                                "data-ocid": "diamond.catalog.list",
-                                className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6",
-                                children: loadingAll ? [1, 2, 3, 4, 5, 6].map((n) => /* @__PURE__ */ jsxRuntimeExports.jsx(DiamondCardSkeleton, {}, `catalog-skeleton-${n}`)) : (allDiamonds ?? []).map((d2, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                    DiamondCard, {
-                                        diamond: d2,
-                                        index: i,
-                                        onInquire: openInquiry
-                                    },
-                                    String(d2.id)
-                                ))
-                            }
-                        )
-                    ]
-                })
-            }),
-            /* @__PURE__ */
-            jsxRuntimeExports.jsx("section", {
                 id: "about",
                 className: "py-24 bg-secondary/30",
                 children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
@@ -46222,7 +46172,7 @@ function App() {
                         className: "grid grid-cols-1 lg:grid-cols-2 gap-16 items-center",
                         children: [
                             /* @__PURE__ */
-                            jsxRuntimeExports.jsxs(
+                            jsxRuntimeExports.jsx(
                                 motion.div, {
                                     initial: {
                                         opacity: 0,
@@ -46238,34 +46188,7 @@ function App() {
                                     transition: {
                                         duration: 0.7
                                     },
-                                    className: "relative",
-                                    children: [
-                                        /* @__PURE__ */
-                                        jsxRuntimeExports.jsx("div", {
-                                            className: "aspect-square rounded-sm overflow-hidden border border-border shadow-diamond",
-                                            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                                "img", {
-                                                    src: "/assets/generated/diamond-featured-transparent.dim_400x400.png",
-                                                    alt: "Pristine white diamond",
-                                                    className: "w-full h-full object-cover"
-                                                }
-                                            )
-                                        }),
-                                        /* @__PURE__ */
-                                        jsxRuntimeExports.jsx(
-                                            "div", {
-                                                className: "absolute -top-4 -left-4 w-16 h-16 border-t-2 border-l-2 border-foreground opacity-40",
-                                                "aria-hidden": true
-                                            }
-                                        ),
-                                        /* @__PURE__ */
-                                        jsxRuntimeExports.jsx(
-                                            "div", {
-                                                className: "absolute -bottom-4 -right-4 w-16 h-16 border-b-2 border-r-2 border-foreground opacity-40",
-                                                "aria-hidden": true
-                                            }
-                                        )
-                                    ]
+                                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(DiamondArrangement, {})
                                 }
                             ),
                             /* @__PURE__ */
@@ -46299,7 +46222,7 @@ function App() {
                                                 " ",
                                                 /* @__PURE__ */
                                                 jsxRuntimeExports.jsx("span", {
-                                                    className: "font-serif-italic text-foreground/70",
+                                                    className: "font-serif-italic text-primary/70",
                                                     children: "White Diamond"
                                                 })
                                             ]
@@ -46307,7 +46230,7 @@ function App() {
                                         /* @__PURE__ */
                                         jsxRuntimeExports.jsx("p", {
                                             className: "text-muted-foreground leading-relaxed mb-4",
-                                            children: `મરકત — meaning "emerald" in Sanskrit, a symbol of rare beauty and enduring value — was founded with one purpose: to bring the world's finest white diamonds to discerning collectors and lovers of lasting elegance.`
+                                            children: `markat — meaning "emerald" in Sanskrit, a symbol of rare beauty and enduring value — was founded with one purpose: to bring the world's finest white diamonds to discerning collectors and lovers of lasting elegance.`
                                         }),
                                         /* @__PURE__ */
                                         jsxRuntimeExports.jsx("p", {
@@ -46337,7 +46260,7 @@ function App() {
                                                 children: [
                                                     /* @__PURE__ */
                                                     jsxRuntimeExports.jsx("p", {
-                                                        className: "font-display text-2xl text-foreground",
+                                                        className: "font-display text-2xl text-primary",
                                                         children: stat.num
                                                     }),
                                                     /* @__PURE__ */
@@ -46412,7 +46335,7 @@ function App() {
                                                 className: "w-5 h-5 text-cream/80 mx-auto mb-3"
                                             }),
                                             title: "Email",
-                                            detail: "harshzdhanani@gmail.com"
+                                            detail: "markatdiamonddreams@gmail.com"
                                         },
                                         {
                                             icon: /* @__PURE__ */ jsxRuntimeExports.jsx(MapPin, {
@@ -46460,10 +46383,11 @@ function App() {
                                     className: "mt-12",
                                     children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                                         Button, {
+                                            "data-ocid": "contact.primary_button",
                                             size: "lg",
                                             className: "gold-gradient text-white text-sm uppercase tracking-[0.2em] font-medium px-10 py-6 hover:opacity-90 transition-opacity",
-                                            onClick: () => scrollTo("catalog"),
-                                            children: "Browse Collection"
+                                            onClick: () => openInquiry(placeholderDiamond),
+                                            children: "Inquire Now"
                                         }
                                     )
                                 })
@@ -46490,13 +46414,13 @@ function App() {
                                     }),
                                     /* @__PURE__ */
                                     jsxRuntimeExports.jsx("span", {
-                                        className: "font-orbitron text-foreground",
-                                        children: "મરકત"
+                                        className: "font-calligraphy text-foreground text-xl",
+                                        children: "markat"
                                     }),
                                     /* @__PURE__ */
                                     jsxRuntimeExports.jsx("span", {
                                         className: "text-muted-foreground text-sm font-sans",
-                                        children: "Diamonds"
+                                        children: "diamond dreams"
                                     })
                                 ]
                             }),
@@ -46506,7 +46430,7 @@ function App() {
                                 children: [
                                     "© ",
                                     currentYear,
-                                    " મરકત Diamonds. All rights reserved."
+                                    " markat diamond dreams. All rights reserved."
                                 ]
                             }),
                             /* @__PURE__ */
@@ -46570,8 +46494,7 @@ function App() {
                                                         className: "text-sm text-muted-foreground mt-1 line-clamp-2",
                                                         children: selectedDiamond.description
                                                     }),
-                                                    /* @__PURE__ */
-                                                    jsxRuntimeExports.jsxs("div", {
+                                                    selectedDiamond.id !== BigInt(0) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
                                                         className: "flex flex-wrap gap-2 mt-3",
                                                         children: [
                                                             [
@@ -46587,8 +46510,7 @@ function App() {
                                                                 },
                                                                 spec
                                                             )),
-                                                            /* @__PURE__ */
-                                                            jsxRuntimeExports.jsxs(Badge, {
+                                                            selectedDiamond.price > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs(Badge, {
                                                                 className: "gold-gradient text-white border-0 text-xs font-sans",
                                                                 children: [
                                                                     "$",
